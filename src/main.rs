@@ -26,6 +26,10 @@ impl Expression {
             infix: vec![],
         }
     }
+
+    fn solve(&self) {
+        println!("{}", self.postfix);
+    }
 }
 
 ///Parses and handles command line argument, and contains the logic and code to run the program.
@@ -35,8 +39,10 @@ fn main() {
     let input_file = &args[2];
     println!("file to run: {}", args[1]);
     println!("input file is: {}", args[2]);
-    let temp = build_expression_list(input_file).unwrap();
-    println!("Each Expression after build_expression function: {:?}", temp)
+    println!("output file is: {}\n", args[3]);
+    let mut expressions = build_expression_list(input_file).unwrap();
+    println!("Each Expression after build_expression function: {:?}", expressions);
+    solve_list(&mut expressions);
 }
 
 ///This function accepts a reference to a string slice representing the input file name
@@ -57,6 +63,13 @@ fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
             else if char.is_numeric() {
                 postfix.push(char);
             }
+            else if char.is_whitespace() {
+                if !postfix.is_empty() {
+                    if !postfix.chars().last().unwrap().is_whitespace() {
+                        postfix.push(' ');
+                    }
+                }
+            }
         }
         if !postfix.is_empty() {
             //println!("{}", postfix);
@@ -65,4 +78,11 @@ fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
         }
     }
     Ok(container)
+}
+
+///Takes a reference to a vector of Expressions and solves them
+fn solve_list(expressions: &mut Vec<Expression>) {
+    for expression in expressions {
+        expression.solve();
+    }
 }
