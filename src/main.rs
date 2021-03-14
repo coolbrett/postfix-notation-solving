@@ -50,7 +50,7 @@ impl Expression {
                 }
                 let second = self.infix.pop().expect("Invalid element in file");
                 let first = self.infix.pop().expect("Invalid element in file");
-                let temp = format!("({} {} {})", first, element, second);
+                let temp = format!("( {} {} {} )", first, element, second);
                 self.expr.push(total);
                 self.infix.push(temp);
             }else {
@@ -87,14 +87,13 @@ fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
     let mut container: Vec<Expression> = Vec::new();
 
     for line in reader.lines(){
-        //println!("{}", line.unwrap());
         let mut postfix = String::new();
 
         for char in line.expect("Iterating through line String failed").chars(){
             if char == '+' || char == '-' || char == '/' || char == '*' {
                 postfix.push(char);
             }
-            else if char.is_numeric() {
+            else if char.is_numeric() || char == '.' {
                 postfix.push(char);
             }
             else if char.is_whitespace() {
@@ -106,7 +105,6 @@ fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
             }
         }
         if !postfix.is_empty() {
-            //println!("{}", postfix);
             let temp: Expression = Expression::new(postfix);
             container.push(temp);
         }
