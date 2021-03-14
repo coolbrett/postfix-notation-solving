@@ -3,7 +3,6 @@
 //! Author: Brett Dale
 //! Version: 1.0 (3/4/2021)
 
-
 use std::env::args;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Error, Write};
@@ -27,8 +26,38 @@ impl Expression {
         }
     }
 
-    fn solve(&self) {
-        println!("{}", self.postfix);
+    ///Solves the postfix expression and creates the equivalent infix expression
+    fn solve(&mut self) {
+        let post = &self.postfix;
+        let post = post.split_whitespace();
+        for element in post{
+            if element == "+" || element == "-" || element == "/" || element == "*" {
+                let num_one = self.expr.pop().unwrap();
+                let num_two = self.expr.pop().unwrap();
+                let mut total: f64 = 0.0;
+
+                if element == "+" {
+                    total = num_one + num_two;
+                }
+                else if element == "-" {
+                    total = num_two - num_one;
+                }
+                else if element == "*" {
+                    total = num_one * num_two;
+                }
+                else if element == "/" {
+                    total = num_two / num_one;
+                }
+                let second = self.infix.pop().expect("Invalid element in file");
+                let first = self.infix.pop().expect("Invalid element in file");
+                let temp = format!("({} {} {})", first, element, second);
+                self.expr.push(total);
+                self.infix.push(temp);
+            }else {
+                self.expr.push(element.parse::<f64>().expect("Failed to convert to f64"));
+                self.infix.push(element.to_string());
+            }
+        }
     }
 }
 
@@ -43,6 +72,11 @@ fn main() {
     let mut expressions = build_expression_list(input_file).unwrap();
     println!("Each Expression after build_expression function: {:?}", expressions);
     solve_list(&mut expressions);
+    println!("\nEach Expression after solve_list function: {:?}", expressions);
+    expressions.reverse();
+    println!("\nEach Expression after reverse function: {:?}", expressions);
+    sort_list(&mut expressions);
+    println!("\nEach Expression after sort_list function: {:?}", expressions);
 }
 
 ///This function accepts a reference to a string slice representing the input file name
@@ -84,5 +118,17 @@ fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
 fn solve_list(expressions: &mut Vec<Expression>) {
     for expression in expressions {
         expression.solve();
+    }
+}
+
+///Takes a reference to a vector of Expressions and sorts them based on the value of the
+///expressions solution
+fn sort_list(expressions: &mut Vec<Expression>) {
+    for i in 0..expressions.len(){
+        for j in 0..expressions.len() - i - 1 {
+            if expressions[j + 1].expr[0] < expressions[j].expr[0] {
+                expressions.swap(j, j + 1);
+            }
+        }
     }
 }
