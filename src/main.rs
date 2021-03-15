@@ -9,7 +9,6 @@ use std::io::{BufRead, BufReader, Error, Write};
 use std::process::exit;
 
 ///Expression struct to build our expressions from input file
-#[derive(Debug)]
 struct Expression {
     postfix: String,
     expr: Vec<f64>,
@@ -27,13 +26,16 @@ impl Expression {
     }
 
     ///Solves the postfix expression and creates the equivalent infix expression
+    ///
+    /// # Arguments
+    /// * 'self' - parameter to point to Expression object's self
     fn solve(&mut self) {
         let post = &self.postfix;
         let post = post.split_whitespace();
         for element in post{
             if element == "+" || element == "-" || element == "/" || element == "*" {
-                let num_one = self.expr.pop().unwrap();
-                let num_two = self.expr.pop().unwrap();
+                let num_one = self.expr.pop().expect("File is invalid");
+                let num_two = self.expr.pop().expect("File is invalid");
                 let mut total: f64 = 0.0;
 
                 if element == "+" {
@@ -68,19 +70,23 @@ fn main() {
     let args: Vec<String> = args().collect();
     if args.len() != 4 {
         println!("Usage: cargo run main.rs <input file> <output file>");
+        exit(0);
     }
     let input_file = &args[2];
-    println!("file to run: {}", args[1]);
-    println!("input file is: {}", args[2]);
-    println!("output file is: {}", args[3]);
     let mut expressions = build_expression_list(input_file).unwrap();
     solve_list(&mut expressions);
     sort_list(&mut expressions);
-    write_to_file(&args[3], &expressions).expect("Could not write to file");
+    write_to_file(&args[3], &mut expressions).expect("Could not write to file");
 }
 
 ///This function accepts a reference to a string slice representing the input file name
 ///and returns a ‘Result’ with a vector of expressions from the file or an appropriate error.
+///
+/// # Arguments
+/// * file - Reference to the string containing the file name of the input file
+///
+/// # Returns
+/// * Result containing a Vector of Expressions or an Error
 fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
     let file = File::open(file).expect("Failed to open file");
     let reader = BufReader::new(&file);
@@ -117,6 +123,9 @@ fn build_expression_list(file: &String) -> Result<Vec<Expression>, Error>{
 }
 
 ///Takes a reference to a vector of Expressions and solves them
+///
+/// # Arguments
+/// * expressions - reference to Vector of Expression objects
 fn solve_list(expressions: &mut Vec<Expression>) {
     for expression in expressions {
         expression.solve();
@@ -129,6 +138,9 @@ fn solve_list(expressions: &mut Vec<Expression>) {
 
 ///Takes a reference to a vector of Expressions and sorts them based on the value of the
 ///expressions solution
+///
+/// # Arguments
+/// * expressions - reference to Vector of Expression objects
 fn sort_list(expressions: &mut Vec<Expression>) {
     for i in 0..expressions.len(){
         for j in 0..expressions.len() - i - 1 {
@@ -141,10 +153,24 @@ fn sort_list(expressions: &mut Vec<Expression>) {
 
 ///This takes a reference to a string slice, representing the output file name and a reference
 ///to a vector of expressions. Function writes contents of Expressions into file_name given
-fn write_to_file(file_name: &str, expressions: &Vec<Expression>) -> Result<(), Error> {
+///
+/// # Arguments
+/// * file_name - reference to a string containing the output file name
+/// * expressions - reference to Vector of Expression objects
+///
+/// # Returns
+/// * Result containing none, or an error
+fn write_to_file(file_name: &str, expressions: &mut Vec<Expression>) -> Result<(), Error> {
     let mut created = File::create(file_name).unwrap();
 
     for expression in expressions {
+        //getting rid of unwanted parentheses
+        expression.infix[0].remove(0);
+        expression.infix[0].remove(0);
+        let num = expression.infix[0].len() - 1;
+        expression.infix[0].remove(num);
+        expression.infix[0].remove(num - 1);
+
         let temp = format!("{} = {}\n", expression.infix[0], expression.expr[0]);
         created.write_all(temp.as_bytes()).expect("Could not write to file");
     }
