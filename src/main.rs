@@ -68,15 +68,15 @@ impl Expression {
 ///If there is an error writing to the output file, main should print an appropriate error message.
 fn main() {
     let args: Vec<String> = args().collect();
-    if args.len() != 4 {
-        println!("Usage: cargo run main.rs <input file> <output file>");
+    if args.len() != 3 {
+        println!("Usage: `cargo run [input file] [output file]`");
         exit(0);
     }
-    let input_file = &args[2];
+    let input_file = &args[1];
     let mut expressions = build_expression_list(input_file).unwrap();
     solve_list(&mut expressions);
     sort_list(&mut expressions);
-    write_to_file(&args[3], &mut expressions).expect("Could not write to file");
+    write_to_file(&args[2], &mut expressions).expect("Could not write to file");
 }
 
 ///This function accepts a reference to a string slice representing the input file name
